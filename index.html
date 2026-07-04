@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>مجموعة أنمي · واتساب</title>
+  <!-- Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Cairo', 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: #d4f0fc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ----- layered background with blended images (aesthetic) ----- */
+    .bg-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.2;
+      background-image: 
+        url('https://i.pinimg.com/736x/5b/f5/7e/5bf57e15c8e283c796406319c2132b83.jpg'),
+        url('https://i.pinimg.com/736x/b3/fb/8a/b3fb8a7b695af32306318ba705318725.jpg'),
+        url('https://i.pinimg.com/736x/f2/72/33/f2723329de7d81f530a28a023f25c99f.jpg');
+      background-size: 30% auto, 25% auto, 35% auto;
+      background-position: 5% 90%, 95% 10%, 50% 50%;
+      background-repeat: no-repeat;
+      filter: blur(1px) brightness(1.1);
+      mix-blend-mode: soft-light;
+    }
+
+    /* main glass card (visible after popup, but also blurred behind popup) */
+    .main-card {
+      position: relative;
+      z-index: 10;
+      max-width: 480px;
+      width: 100%;
+      background: rgba(210, 240, 255, 0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 48px 48px 40px 40px;
+      box-shadow: 0 20px 40px rgba(0, 120, 180, 0.2), 0 8px 24px rgba(0, 180, 220, 0.15);
+      padding: 28px 22px 38px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    /* ---- POPUP OVERLAY (blurry background behind it) ---- */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 40, 60, 0.4);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 20px;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+    .popup-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .popup-box {
+      background: linear-gradient(145deg, #e2f6ff, #c0e8ff);
+      max-width: 420px;
+      width: 100%;
+      padding: 30px 24px 28px;
+      border-radius: 60px 60px 40px 40px;
+      box-shadow: 0 30px 40px rgba(0, 60, 100, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      text-align: center;
+    }
+
+    .popup-box h2 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #0b4b6b;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .popup-message {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #09435e;
+      line-height: 1.5;
+      margin-bottom: 28px;
+      background: rgba(255, 255, 255, 0.3);
+      padding: 18px 10px;
+      border-radius: 60px;
+      backdrop-filter: blur(4px);
+    }
+
+    .popup-message .highlight-red {
+      color: #d62828;
+      font-weight: 800;
+      text-shadow: 0 0 12px rgba(214, 40, 40, 0.2);
+    }
+
+    .popup-btn {
+      background: #0b7b9e;
+      border: none;
+      padding: 16px 38px;
+      border-radius: 60px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(145deg, #1b9bc2, #0f7a9e);
+      box-shadow: 0 8px 0 #08506b, 0 12px 24px rgba(0, 110, 150, 0.3);
+      transition: all 0.1s ease;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      width: 100%;
+      letter-spacing: 0.5px;
+    }
+
+    .popup-btn:active {
+      transform: translateY(6px);
+      box-shadow: 0 2px 0 #08506b;
+    }
+
+    /* ---- main content ---- */
+    .main-content {
+      display: block;
+    }
+
+    .main-title {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: #075a7a;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 12px rgba(0, 160, 210, 0.2);
+    }
+
+    .sub-reminder {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #0a4b66;
+      background: rgba(255, 255, 255, 0.4);
+      padding: 12px 14px;
+      border-radius: 60px;
+      backdrop-filter: blur(4px);
+      margin: 10px 0 18px;
+      display: inline-block;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .sub-reminder .highlight-red {
+      color: #d62828;
+      font-weight: 800;
+      text-shadow: 0 0 16px rgba(214, 40, 40, 0.25);
+    }
+
+    /* main CTA button */
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(145deg, #24b8db, #1093b9);
+      padding: 18px 20px;
+      border-radius: 80px;
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: white;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 12px 0 #09647e, 0 14px 28px rgba(0, 130, 180, 0.3);
+      transition: all 0.08s linear;
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      text-decoration: none;
+      margin: 8px 0 20px;
+    }
+
+    .cta-button:active {
+      transform: translateY(6px);
+      box-shadow: 0 4px 0 #09647e;
+    }
+
+    .cta-button i {
+      margin-left: 12px;
+      opacity: 0.9;
+    }
+
+    /* benefits section */
+    .benefits-section {
+      margin-top: 28px;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 60px 60px 30px 30px;
+      padding: 20px 16px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 6px 20px rgba(0, 120, 180, 0.1);
+    }
+
+    .benefits-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0b5e7a;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .benefits-title i {
+      color: #0f8db3;
+      font-size: 1.9rem;
+      filter: drop-shadow(0 0 6px rgba(0,180,230,0.3));
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(4px);
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      border-radius: 60px;
+      border-left: 6px solid #1da3c9;
+      box-shadow: 0 4px 12px rgba(0, 130, 180, 0.08);
+      transition: all 0.2s;
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: #03415a;
+      text-align: right;
+    }
+
+    .benefit-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .benefit-item i {
+      font-size: 2rem;
+      min-width: 44px;
+      color: #0f8db3;
+      filter: drop-shadow(0 0 6px #77d0f0);
+      text-shadow: 0 0 12px rgba(0, 180, 230, 0.3);
+    }
+
+    .benefit-item span {
+      flex: 1;
+      line-height: 1.3;
+    }
+
+    .benefit-item {
+      background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(200, 240, 255, 0.6) 100%);
+      border: 1px solid rgba(255,255,255,0.4);
+      box-shadow: 0 8px 16px -6px rgba(0, 100, 140, 0.15), inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+
+    /* responsive */
+    @media (max-width: 480px) {
+      .main-card {
+        padding: 20px 14px 28px;
+        border-radius: 36px;
+      }
+      .popup-box {
+        padding: 24px 16px;
+      }
+      .popup-message {
+        font-size: 1.1rem;
+      }
+      .main-title {
+        font-size: 1.6rem;
+      }
+      .sub-reminder {
+        font-size: 1rem;
+        padding: 10px 12px;
+      }
+      .cta-button {
+        font-size: 1.5rem;
+        padding: 16px 12px;
+      }
+      .benefit-item {
+        font-size: 1rem;
+        padding: 14px 14px;
+        gap: 12px;
+      }
+      .benefit-item i {
+        font-size: 1.7rem;
+        min-width: 36px;
+      }
+      .benefits-title {
+        font-size: 1.3rem;
+      }
+      .bg-layer {
+        background-size: 40% auto, 35% auto, 45% auto;
+        background-position: 0% 95%, 100% 5%, 30% 30%;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .cta-button {
+        font-size: 1.2rem;
+        padding: 14px 10px;
+      }
+      .popup-message {
+        font-size: 1rem;
+      }
+    }
+
+    .glow-text {
+      text-shadow: 0 0 20px rgba(0, 180, 230, 0.2);
+    }
+    .arabic-strong {
+      font-weight: 700;
+    }
+
+    /* blur behind popup: main card is visible but blurred */
+    .popup-visible .main-card {
+      filter: blur(6px);
+      transition: filter 0.3s ease;
+      pointer-events: none;
+    }
+    .popup-visible .bg-layer {
+      filter: blur(2px) brightness(1.0);
+    }
+    /* when popup hidden, remove blur */
+    .popup-hidden .main-card {
+      filter: blur(0px);
+      pointer-events: auto;
+    }
+    .popup-hidden .bg-layer {
+      filter: blur(1px) brightness(1.1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- background images blend -->
+  <div class="bg-layer"></div>
+
+  <!-- POPUP WINDOW (warning) -->
+  <div id="warningPopup" class="popup-overlay">
+    <div class="popup-box">
+      <h2><i class="fas fa-exclamation-triangle" style="color: #d62828; margin-left: 8px;"></i> تنبيه</h2>
+      <div class="popup-message">
+        ضروري لما تدخل تقول من طرف <span class="highlight-red">ديكستر</span>
+      </div>
+      <button id="acceptPopupBtn" class="popup-btn"> 
+        <i class="fas fa-check-circle" style="margin-left: 10px;"></i> حصول على رابط
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN CARD (visible and blurred behind popup) -->
+  <div class="main-card" id="mainCard">
+    <div class="main-content">
+      <div class="main-title">
+        <i class="fas fa-users" style="color: #1a9bc2; margin-left: 8px;"></i> مجموعة أنمي
+      </div>
+
+      <div class="sub-reminder">
+        <i class="fas fa-bell" style="color: #0d7fa3; margin-left: 8px;"></i> 
+        لا تنسى تقول انك دخلت من طرف <span class="highlight-red">ديكستر</span>
+      </div>
+
+      <a href="https://chat.whatsapp.com/LXhzDjWvwPgFNDoLJIlvfC?s=cl&p=a&ilr=1&amv=2" target="_blank" class="cta-button">
+        <i class="fab fa-whatsapp"></i> دخول الى مجموعة انمي
+        <i class="fas fa-arrow-left" style="margin-right: 6px;"></i>
+      </a>
+
+      <div class="benefits-section">
+        <div class="benefits-title">
+          <i class="fas fa-star"></i> 
+          <span>مميزات المجموعة</span>
+          <i class="fas fa-star"></i>
+        </div>
+
+        <div class="benefit-item">
+          <i class="fas fa-tv"></i>
+          <span>مجموعة لعشاق الانمي</span>
+        </div>
+        <div class="benefit-item">
+          <i class="fas fa-trophy"></i>
+          <span>فعاليات ومسابقات</span>
+        </div>
+        <div class="benefit-item">
+          <i class="fas fa-user-friends"></i>
+          <span>اصنع أصحاب من مختلف الدول العربية</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 22px; font-size: 0.85rem; color: #146d8a; opacity: 0.7; letter-spacing: 0.3px;">
+        <i class="fas fa-heart" style="color: #d65f7a;"></i> 
+        انضم الآن · مجتمع أنمي متكامل
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const popup = document.getElementById('warningPopup');
+      const acceptBtn = document.getElementById('acceptPopupBtn');
+      const mainCard = document.getElementById('mainCard');
+      const body = document.body;
+
+      // Initially: popup visible, main card blurred (via class)
+      body.classList.add('popup-visible');
+      // main card is displayed but blurred
+      mainCard.style.display = 'block'; 
+
+      acceptBtn.addEventListener('click', function() {
+        // hide popup
+        popup.classList.add('hidden');
+        // remove blur from main card and background
+        body.classList.remove('popup-visible');
+        body.classList.add('popup-hidden');
+        // after transition, hide popup completely
+        setTimeout(() => {
+          popup.style.display = 'none';
+        }, 500);
+      });
+
+      // safety: if popup hidden by class but still visible? we handle
+    })();
+  </script>
+
+</body>
+</html>
